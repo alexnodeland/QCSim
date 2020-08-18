@@ -1,0 +1,22 @@
+import entropica
+
+STATE = '001'
+q = entropica.QuantumRegister(STATE)
+c = entropica.ClassicalRegister(8)
+qc = entropica.QuantumCircuit(q,c)
+qc.H(0)
+qc.H(1)
+qc.H(2)
+qc.X(0)
+qc.CCX(0,1,2)
+qc.X(0)
+qc.H(0)
+qc.H(1)
+qc.X(0)
+qc.X(1)
+qc.CZ(0,1)
+qc.X(0)
+qc.X(1)
+qc.H(0)
+qc.H(1)
+print(entropica.Result.get_statevector(qc))
