@@ -1,9 +1,9 @@
-import entropica
+import qcsim
 
 STATE = '001'
-q = entropica.QuantumRegister(STATE)
-c = entropica.ClassicalRegister(8)
-qc = entropica.QuantumCircuit(q,c)
+q = qcsim.QuantumRegister(STATE)
+c = qcsim.ClassicalRegister(8)
+qc = qcsim.QuantumCircuit(q,c)
 qc.H(0)
 qc.H(1)
 qc.H(2)
@@ -19,4 +19,4 @@ qc.X(0)
 qc.X(1)
 qc.H(0)
 qc.H(1)
-print(entropica.Result.get_statevector(qc))
+print(qcsim.Result.get_statevector(qc))
