@@ -4,7 +4,7 @@ class Error(Exception):
     """Base class for exceptions in this module."""
     pass
 
-class EntropicaError(Error):
+class QCSimError(Error):
     """Exception raised for errors in the input.
 
     Attributes:
@@ -283,14 +283,14 @@ class QuantumCircuit(object):
     
     def SWAP(self, ctl, tgt):
         if abs(ctl-tgt) != 1:
-            raise EntropicaError('SWAP','Control and target should be consecutive qubits!')            
+            raise QCSimError('SWAP','Control and target should be consecutive qubits!')            
             quit()
         swap = self._embed(Gate().SWAP, min(ctl, tgt), 2)
         self.state_vec = swap.dot(self.state_vec)
         
     def CX(self, ctl, tgt):
         if abs(ctl-tgt) != 1:
-            raise EntropicaError('CX','Control and target should be consecutive qubits!')
+            raise QCSimError('CX','Control and target should be consecutive qubits!')
             quit()
         if tgt < ctl:
             self.SWAP(ctl, tgt)
@@ -301,7 +301,7 @@ class QuantumCircuit(object):
         
     def CY(self, ctl, tgt):
         if abs(ctl-tgt) != 1:
-            raise EntropicaError('CY','Control and target should be consecutive qubits!')
+            raise QCSimError('CY','Control and target should be consecutive qubits!')
             quit()
         if tgt < ctl:
             self.SWAP(ctl, tgt)
@@ -312,7 +312,7 @@ class QuantumCircuit(object):
         
     def CZ(self, ctl, tgt):
         if abs(ctl-tgt) != 1:
-            raise EntropicaError('CZ','Control and target should be consecutive qubits!')
+            raise QCSimError('CZ','Control and target should be consecutive qubits!')
             quit()
         if tgt < ctl:
             self.SWAP(ctl, tgt)
@@ -323,14 +323,14 @@ class QuantumCircuit(object):
         
     def CCX(self, ctl1, ctl2, tgt):
         if abs(ctl1-ctl2) != 1 and tgt - max(ctl1,ctl2) != 1:
-            raise EntropicaError('CCX','Controls and target should be consecutive qubits!')
+            raise QCSimError('CCX','Controls and target should be consecutive qubits!')
             quit()
         ccx = self._embed(Gate().CCX, min(ctl1, ctl2), 3)
         self.state_vec = ccx.dot(self.state_vec)
 
     def CSWAP(self, ctl, tgt1, tgt2):
         if abs(tgt1-tgt2) != 1 and min(tgt1,tgt2) - ctl != 1:
-            raise EntropicaError('CSWAP','Controls and target should be consecutive qubits!')
+            raise QCSimError('CSWAP','Controls and target should be consecutive qubits!')
             quit()
         cswap = self._embed(Gate().CSWAP, ctl, 3)
         self.state_vec = cswap.dot(self.state_vec)    
@@ -343,9 +343,9 @@ class QuantumRegister(object):
             if set(qr) <= set('01'):
                 self._q = np.array(list(map(int,np.array(list(qr)))))[np.newaxis].T
             else:
-                raise EntropicaError('QuantumRegister', 'If specifying explicit state(str), please input sting of 1"s and 0"s')
+                raise QCSimError('QuantumRegister', 'If specifying explicit state(str), please input sting of 1"s and 0"s')
         else:
-            raise EntropicaError('QuantumRegister','Please input size(int) or explicit state(str)')
+            raise QCSimError('QuantumRegister','Please input size(int) or explicit state(str)')
         
     @property
     def get_qreg(self):
@@ -359,7 +359,7 @@ class ClassicalRegister(object):
             if set(cr) <= set('01'):
                 self._c = np.array(list(map(int,np.array(list(cr)))))[np.newaxis].T
             else:
-                raise EntropicaError('ClassicalRegister', 'If specifying explicit state(str), please input sting of 1"s and 0"s')
+                raise QCSimError('ClassicalRegister', 'If specifying explicit state(str), please input sting of 1"s and 0"s')
         else:
             raise EntropicError('ClassicalRegister','Please input size(int) or explicit state(str)')
         
