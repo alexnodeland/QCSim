@@ -14,7 +14,7 @@ QCSim is a simple quantum circuit simulator implemented in Python. It provides b
 To use QCSim, simply clone the repository and ensure you have NumPy installed.
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/alexnodeland/qcsim.git
 cd qcsim
 pip install numpy
 ```
