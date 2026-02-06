@@ -16,13 +16,19 @@ QCSim is a simple quantum circuit simulator implemented in Python. It provides b
 ```bash
 git clone https://github.com/alexnodeland/qcsim.git
 cd qcsim
-pip install .
+uv sync
 ```
 
 For development (includes pytest):
 
 ```bash
-pip install -e ".[dev]"
+uv sync --dev
+```
+
+To run the interactive notebook:
+
+```bash
+uv run --extra notebook marimo edit notebook.py
 ```
 
 ## Usage
@@ -66,7 +72,7 @@ Predefined quantum device topologies available:
 ## Testing
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ## Error Handling
