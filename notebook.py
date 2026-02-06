@@ -8,14 +8,14 @@ app = marimo.App(width="medium", app_title="QCSim: Explorable Quantum Computing"
 def _():
     import marimo as mo
     import altair as alt
-    import pandas as pd
+    import polars as pl
     import numpy as np
     import sys
     sys.path.insert(0, ".")
     import qcsim
     from qcsim import Gate, QuantumRegister, QuantumCircuit, Result
 
-    return Gate, QuantumCircuit, QuantumRegister, Result, alt, mo, np, pd, qcsim
+    return Gate, QuantumCircuit, QuantumRegister, Result, alt, mo, np, pl, qcsim
 
 
 # ─────────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ def _(mo):
 
 
 @app.cell
-def _(alt, mo, np, pd, phi_slider, theta_slider):
+def _(alt, mo, np, pl, phi_slider, theta_slider):
     _theta = theta_slider.value / 100.0
     _phi = phi_slider.value / 100.0
 
@@ -136,12 +136,12 @@ def _(alt, mo, np, pd, phi_slider, theta_slider):
 
     # Circle outline for unit sphere
     _t_circle = np.linspace(0, 2 * np.pi, 200)
-    _circle_df = pd.DataFrame({"cx": np.cos(_t_circle), "cy": np.sin(_t_circle)})
+    _circle_df = pl.DataFrame({"cx": np.cos(_t_circle), "cy": np.sin(_t_circle)})
 
-    _point_xz = pd.DataFrame({"x": [_bx], "z": [_bz], "label": ["| ψ ⟩"]})
-    _point_xy = pd.DataFrame({"x": [_bx], "y": [_by], "label": ["| ψ ⟩"]})
-    _arrow_xz = pd.DataFrame({"x": [0, _bx], "z": [0, _bz]})
-    _arrow_xy = pd.DataFrame({"x": [0, _bx], "y": [0, _by]})
+    _point_xz = pl.DataFrame({"x": [_bx], "z": [_bz], "label": ["| ψ ⟩"]})
+    _point_xy = pl.DataFrame({"x": [_bx], "y": [_by], "label": ["| ψ ⟩"]})
+    _arrow_xz = pl.DataFrame({"x": [0, _bx], "z": [0, _bz]})
+    _arrow_xy = pl.DataFrame({"x": [0, _bx], "y": [0, _by]})
 
     def _bloch_view(circle_df, arrow_df, point_df, xcol, ycol, title):
         base_circle = (
@@ -150,10 +150,10 @@ def _(alt, mo, np, pd, phi_slider, theta_slider):
             .encode(x=alt.X("cx:Q", axis=None, scale=alt.Scale(domain=[-1.4, 1.4])),
                     y=alt.Y("cy:Q", axis=None, scale=alt.Scale(domain=[-1.4, 1.4])))
         )
-        axis_h = alt.Chart(pd.DataFrame({"x": [-1, 1], "y": [0, 0]})).mark_line(
+        axis_h = alt.Chart(pl.DataFrame({"x": [-1, 1], "y": [0, 0]})).mark_line(
             color="#ccc", strokeDash=[4, 4], strokeWidth=1
         ).encode(x="x:Q", y="y:Q")
-        axis_v = alt.Chart(pd.DataFrame({"x": [0, 0], "y": [-1, 1]})).mark_line(
+        axis_v = alt.Chart(pl.DataFrame({"x": [0, 0], "y": [-1, 1]})).mark_line(
             color="#ccc", strokeDash=[4, 4], strokeWidth=1
         ).encode(x="x:Q", y="y:Q")
         arrow = (
@@ -181,7 +181,7 @@ def _(alt, mo, np, pd, phi_slider, theta_slider):
     _chart_xy = _bloch_view(_circle_df, _arrow_xy, _point_xy, "x", "y", "Top view (X–Y)")
 
     # ── Probability bar chart ──
-    _prob_df = pd.DataFrame({
+    _prob_df = pl.DataFrame({
         "State": ["|0⟩", "|1⟩"],
         "Probability": [_p0, _p1],
     })
@@ -276,7 +276,7 @@ def _(mo):
 
 
 @app.cell
-def _(Gate, alt, gate_selector, input_selector, mo, np, pd):
+def _(Gate, alt, gate_selector, input_selector, mo, np, pl):
     # Get gate matrix
     _gate_map = {"X": Gate.X, "Y": Gate.Y, "Z": Gate.Z, "H": Gate.H, "S": Gate.S, "T": Gate.T}
     _gate = _gate_map[gate_selector.value]
@@ -307,7 +307,7 @@ def _(Gate, alt, gate_selector, input_selector, mo, np, pd):
                     else f"{_val.real:.2f}{_val.imag:+.2f}i"
                 ),
             })
-    _mat_df = pd.DataFrame(_rows)
+    _mat_df = pl.DataFrame(_rows)
 
     _heatmap = (
         alt.Chart(_mat_df)
@@ -354,7 +354,7 @@ def _(Gate, alt, gate_selector, input_selector, mo, np, pd):
                     else f"{_vi.real:.3f}{_vi.imag:+.3f}i"
                 ),
             })
-        df_state = pd.DataFrame(_rows_sb)
+        df_state = pl.DataFrame(_rows_sb)
         bars = (
             alt.Chart(df_state)
             .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
@@ -434,7 +434,7 @@ def _(mo):
 
 
 @app.cell
-def _(Gate, alt, mo, np, pd, rot_angle_slider, rot_gate_select):
+def _(Gate, alt, mo, np, pl, rot_angle_slider, rot_gate_select):
     _angle = rot_angle_slider.value / 100.0
     _rot_map = {"RX": Gate.RX, "RY": Gate.RY, "RZ": Gate.RZ}
     _rot_gate = _rot_map[rot_gate_select.value](_angle)
@@ -453,10 +453,10 @@ def _(Gate, alt, mo, np, pd, rot_angle_slider, rot_gate_select):
             "P(|0⟩)": float(np.abs(_out[0, 0]) ** 2),
             "P(|1⟩)": float(np.abs(_out[1, 0]) ** 2),
         })
-    _sweep_df = pd.DataFrame(_sweep_rows)
-    _sweep_long = _sweep_df.melt("angle", var_name="State", value_name="Probability")
+    _sweep_df = pl.DataFrame(_sweep_rows)
+    _sweep_long = _sweep_df.unpivot(index="angle", variable_name="State", value_name="Probability")
 
-    _current_marker = pd.DataFrame({
+    _current_marker = pl.DataFrame({
         "angle": [_angle, _angle],
         "State": ["P(|0⟩)", "P(|1⟩)"],
         "Probability": [
@@ -494,7 +494,7 @@ def _(Gate, alt, mo, np, pd, rot_angle_slider, rot_gate_select):
     )
 
     _rule = (
-        alt.Chart(pd.DataFrame({"angle": [_angle]}))
+        alt.Chart(pl.DataFrame({"angle": [_angle]}))
         .mark_rule(color="#999", strokeDash=[4, 4])
         .encode(x="angle:Q")
     )
@@ -594,7 +594,7 @@ def _(mo):
 @app.cell
 def _(
     QuantumCircuit, QuantumRegister, Result, alt, entangle_gate,
-    init_state, mo, n_shots, np, pd, q0_gate, q1_gate,
+    init_state, mo, n_shots, np, pl, q0_gate, q1_gate,
 ):
     _q = QuantumRegister(init_state.value)
     _qc = QuantumCircuit(_q)
@@ -634,7 +634,7 @@ def _(
                 else f"{_val.real:.3f}{_val.imag:+.3f}i"
             ),
         })
-    _amp_df = pd.DataFrame(_amp_rows)
+    _amp_df = pl.DataFrame(_amp_rows)
 
     _prob_bars = (
         alt.Chart(_amp_df)
@@ -668,10 +668,10 @@ def _(
             "px": _mag * np.cos(_phase),
             "py": _mag * np.sin(_phase),
         })
-    _phase_df = pd.DataFrame(_phase_rows)
+    _phase_df = pl.DataFrame(_phase_rows)
 
     _phase_chart_circle_t = np.linspace(0, 2 * np.pi, 100)
-    _phase_circle = pd.DataFrame({"cx": np.cos(_phase_chart_circle_t), "cy": np.sin(_phase_chart_circle_t)})
+    _phase_circle = pl.DataFrame({"cx": np.cos(_phase_chart_circle_t), "cy": np.sin(_phase_chart_circle_t)})
     _phase_bg = (
         alt.Chart(_phase_circle)
         .mark_line(color="#eee", strokeWidth=1)
@@ -710,7 +710,7 @@ def _(
     _counts = _qc.measure(n_shots.value)
     _meas_rows = [{"Outcome": _k, "Count": _v, "Frequency": _v / n_shots.value}
                   for _k, _v in sorted(_counts.items())]
-    _meas_df = pd.DataFrame(_meas_rows)
+    _meas_df = pl.DataFrame(_meas_rows)
 
     _meas_chart = (
         alt.Chart(_meas_df)
@@ -815,7 +815,7 @@ def _(mo):
 
 
 @app.cell
-def _(alt, bell_select, mo, np, pd):
+def _(alt, bell_select, mo, np, pl):
     _bell_states = {
         "phi+": np.array([[1], [0], [0], [1]], dtype=complex) / np.sqrt(2),
         "phi-": np.array([[1], [0], [0], [-1]], dtype=complex) / np.sqrt(2),
@@ -834,7 +834,7 @@ def _(alt, bell_select, mo, np, pd):
             "Amplitude": float(_val.real),
             "Probability": float(np.abs(_val) ** 2),
         })
-    _df = pd.DataFrame(_rows)
+    _df = pl.DataFrame(_rows)
 
     _amp_chart = (
         alt.Chart(_df)
@@ -857,7 +857,7 @@ def _(alt, bell_select, mo, np, pd):
     )
 
     _zero_rule = (
-        alt.Chart(pd.DataFrame({"y": [0]}))
+        alt.Chart(pl.DataFrame({"y": [0]}))
         .mark_rule(color="#999", strokeDash=[2, 2])
         .encode(y="y:Q")
     )
@@ -874,7 +874,7 @@ def _(alt, bell_select, mo, np, pd):
                 "value": float(_val.real),
                 "label": f"{_val.real:.2f}" if abs(_val.imag) < 1e-10 else f"{_val.real:.2f}{_val.imag:+.2f}i",
             })
-    _dm_df = pd.DataFrame(_dm_rows)
+    _dm_df = pl.DataFrame(_dm_rows)
 
     _dm_heat = (
         alt.Chart(_dm_df)
@@ -970,7 +970,7 @@ def _(mo):
 
 
 @app.cell
-def _(QuantumCircuit, QuantumRegister, Result, alt, grover_step, grover_target, mo, np, pd):
+def _(QuantumCircuit, QuantumRegister, Result, alt, grover_step, grover_target, mo, np, pl):
     _target_idx = grover_target.value
     _step = grover_step.value
     _labels = ["|00⟩", "|01⟩", "|10⟩", "|11⟩"]
@@ -1027,7 +1027,7 @@ def _(QuantumCircuit, QuantumRegister, Result, alt, grover_step, grover_target, 
                 "Amplitude": float(_val.real),
                 "Probability": float(np.abs(_val) ** 2),
             })
-    _all_df = pd.DataFrame(_all_rows)
+    _all_df = pl.DataFrame(_all_rows)
 
     # Current step chart (large)
     _current_sv = _snapshots[_step]
@@ -1039,7 +1039,7 @@ def _(QuantumCircuit, QuantumRegister, Result, alt, grover_step, grover_target, 
             "Amplitude": float(_val.real),
             "Probability": float(np.abs(_val) ** 2),
         })
-    _current_df = pd.DataFrame(_current_rows)
+    _current_df = pl.DataFrame(_current_rows)
 
     _main_chart = (
         alt.Chart(_current_df)
@@ -1060,10 +1060,10 @@ def _(QuantumCircuit, QuantumRegister, Result, alt, grover_step, grover_target, 
         )
         .properties(width=350, height=300, title=f"Step {_step}: {_step_names[_step]}")
     )
-    _zero_line = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color="#999").encode(y="y:Q")
+    _zero_line = alt.Chart(pl.DataFrame({"y": [0]})).mark_rule(color="#999").encode(y="y:Q")
     _mean_val = float(np.mean([complex(_current_sv[_k2, 0]).real for _k2 in range(4)]))
     _mean_line = (
-        alt.Chart(pd.DataFrame({"y": [_mean_val]}))
+        alt.Chart(pl.DataFrame({"y": [_mean_val]}))
         .mark_rule(color="#f58518", strokeDash=[6, 3], strokeWidth=2)
         .encode(y="y:Q")
     )
@@ -1210,7 +1210,7 @@ def _(layer_gates, layer_tq, mo, num_qubits_select):
 @app.cell
 def _(
     QuantumCircuit, QuantumRegister, alt, layer_gates, layer_tq,
-    mo, np, num_qubits_select, pd, sandbox_shots,
+    mo, np, num_qubits_select, pl, sandbox_shots,
 ):
     _nq = num_qubits_select.value
     _q = QuantumRegister(_nq)
@@ -1252,7 +1252,7 @@ def _(
                 else f"{_val.real:.3f}{_val.imag:+.3f}i"
             ),
         })
-    _state_df = pd.DataFrame(_state_rows)
+    _state_df = pl.DataFrame(_state_rows)
 
     _theory_chart = (
         alt.Chart(_state_df)
@@ -1278,7 +1278,7 @@ def _(
             "Count": _counts.get(_lbl, 0),
             "Frequency": _counts.get(_lbl, 0) / sandbox_shots.value,
         })
-    _meas_df = pd.DataFrame(_meas_rows)
+    _meas_df = pl.DataFrame(_meas_rows)
 
     _meas_chart = (
         alt.Chart(_meas_df)
