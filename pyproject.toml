@@ -11,7 +11,7 @@ dependencies = ["numpy"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
-notebook = ["marimo", "altair", "polars"]
+notebook = ["marimo", "altair", "polars", "anywidget"]
 
 [tool.pytest.ini_options]
 testpaths = ["."]
