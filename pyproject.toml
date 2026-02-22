@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qcsim"
+version = "0.1.0"
+description = "A simple quantum circuit simulator for educational purposes"
+requires-python = ">=3.10"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+notebook = ["marimo", "altair", "polars", "anywidget"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+
+[tool.uv]
+dev-dependencies = ["pytest"]
